@@ -1,25 +1,18 @@
---[[
-	   
-	Author: РЎРѕРњРёРљ
-	Links:
-		- https://www.blast.hk/members/406277/
-		- https://t.me/klamet_one
-		- https://vk.com/klamet1
 
-]]
+-- Код хоткеев от СоМиК переделан специально для Law Enforcer Assistant 
 
 local imgui = require 'mimgui'
+local wm = require 'windows.message'
 local vk = require 'vkeys'
+local encoding = require('encoding')
+encoding.default = 'CP1251'
+local u8 = encoding.UTF8
 
 HOTKEY = {
-	MODULEINFO = {
-		version = 3,
-		author = 'РЎРѕРњРёРљ',
-		modified_by = "Law Enforcer Assistant | KyRDa"
-	},
+	version = 13,
 	Text = {
-		WaitForKey = 'РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ...',
-		NoKey = '< РЎРІРѕР±РѕРґРЅРѕ >'
+		WaitForKey = 'Key...',
+		NoKey = 'None'
 	},
 	List = {},
 	ActiveKeys = {},
@@ -31,35 +24,15 @@ HOTKEY = {
 }
 
 local specialKeys = {
-	0x10,
-	0x11,
-	0x12,
-	0xA4,
-	0xA5
+	[vk.VK_SHIFT] = true,
+	[vk.VK_CONTROL] = true,
+	[vk.VK_MENU] = true,
+	[vk.VK_LMENU] = true,
+	[vk.VK_RMENU] = true
 }
 
-deepcopy = function(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else -- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
-
 local keyIsSpecial = function(key)
-	for k, v in ipairs(specialKeys) do
-		if v == key then
-			return true
-		end
-	end
-	return false
+	return specialKeys[key]
 end
 
 HOTKEY.getKeysText = function(name)
@@ -72,43 +45,84 @@ HOTKEY.getKeysText = function(name)
 	return table.concat(keysText, ' + ')
 end
 
-local searchHotKey = function(keys)
-	local needCombo = deepcopy(keys)
-
-	table.sort(needCombo)
-	needCombo = table.concat(needCombo, ':')
-
-	for k, v in pairs(HOTKEY.List) do
-		if next(v.keys) then
-			local foundCombo = deepcopy(v.keys)
-
-			table.sort(foundCombo)
-			foundCombo = table.concat(foundCombo, ':')
-			
-			if foundCombo == needCombo and not imgui.IsAnyItemActive() and (v.no_inChat or not sampIsChatInputActive()) and not sampIsDialogActive() and not isSampfuncsConsoleActive() then
-				consumeWindowMessage(true, false)
-				v.callback(k)
-			end
+local function isValueInITable(value, t)
+	for k, v in ipairs(t) do
+		if v == value then
+			return true, k
 		end
 	end
+
+	return false
 end
 
-HOTKEY.RegisterHotKey = function(name, soloKey, keys, callback, no_inChat)
-	if HOTKEY.List[name] == nil then
+local function object_vs(o1, o2)
+	if o1 == o2 then return true end
+	local t1Type = type(o1)
+	local t2Type = type(o2)
+	if t1Type ~= t2Type then return false end
+	if t1Type ~= 'table' then return false end
 
+	local keySet = {}
+
+	for key1, value1 in pairs(o1) do
+		local value2 = o2[key1]
+		if value2 == nil or object_vs(value1, value2) == false then
+			return false
+		end
+		keySet[key1] = true
+	end
+
+	for key2, _ in pairs(o2) do
+		if not keySet[key2] then return false end
+	end
+
+	return true
+end
+
+local searchHotKey = function(keys)
+    local canTriggerHotkey = 
+        ((imgui.Loaded and not imgui.IsAnyItemActive()) or not imgui.Loaded) and
+        not sampIsDialogActive() and 
+        not isSampfuncsConsoleActive()
+
+    if not canTriggerHotkey then return end
+
+	table.sort(keys)
+
+    for k, v in pairs(HOTKEY.List) do
+        -- Проверяем наличие ключей на соответствие
+        if next(v.keys) and object_vs(keys, v.keys) and (v.inChat == sampIsChatInputActive()) and v.available() then
+			consumeWindowMessage(true, false)
+			v.callback(k)
+        end
+    end
+end
+
+---@param name string
+---@param soloKey boolean
+---@param keys table
+---@param callback function
+---@param available function
+---@param inChat boolean
+---@return metatable
+HOTKEY.RegisterHotKey = function(name, soloKey, keys, callback, available, inChat)
+	if HOTKEY.List[name] == nil then
 		HOTKEY.List[name] = {
 			soloKey = soloKey,
 			keys = keys,
 			callback = callback,
-			no_inChat = no_inChat
+			inChat = inChat or false,
+			name = name,
+			available = available or function() return true end
 		}
 
 		return {
-			name,
-			['ShowHotKey'] = setmetatable({}, {__call = function(self, arg1, arg2) return HOTKEY.ShowHotKey(arg1[1], arg2) end}),
-			['EditHotKey'] = setmetatable({}, {__call = function(self, arg1, arg2) return HOTKEY.EditHotKey(arg1[1], arg2) end}),
-			['RemoveHotKey'] = setmetatable({}, {__call = function(self, arg) return HOTKEY.RemoveHotKey(arg[1]) end}),
-			['GetHotKey'] = setmetatable({}, {__call = function(self, arg) return HOTKEY.GetHotKey(arg[1]) end})
+			name = name,
+			['ShowHotKey'] = setmetatable({}, {__call = function(self, arg1, arg2) return HOTKEY.ShowHotKey(arg1.name, arg2) end}),
+			['EditHotKey'] = setmetatable({}, {__call = function(self, arg1, arg2) return HOTKEY.EditHotKey(arg1.name, arg2) end}),
+			['EditName'] = setmetatable({}, {__call = function(self, arg1, arg2) return HOTKEY.EditHotKey(arg1.name, arg2) end}),
+			['RemoveHotKey'] = setmetatable({}, {__call = function(self, arg) return HOTKEY.RemoveHotKey(arg.name) end}),
+			['GetHotKey'] = setmetatable({}, {__call = function(self, arg) return HOTKEY.GetHotKey(arg.name) end}),
 		}
 	end
 end
@@ -131,9 +145,11 @@ HOTKEY.EditName = setmetatable(
 	{
 		__call = function(self, old_name, new_name)
 			if HOTKEY.List[old_name] ~= nil and old_name ~= new_name then
-
-				HOTKEY.List[new_name] = deepcopy(HOTKEY.List[old_name])
+				
+				HOTKEY.List[new_name] = DeepCopy(HOTKEY.List[old_name])
 				HOTKEY.List[old_name] = nil
+				old_name = new_name
+				HOTKEY.List[new_name].name = new_name
 				
 				return true
 			end
@@ -173,7 +189,7 @@ HOTKEY.ShowHotKey = setmetatable(
 					return true
 				end
 			else
-				imgui.AnimButton('РҐРѕС‚РєРµР№ РЅРµ РЅР°Р№РґРµРЅ', sizeButton, button_col)
+				imgui.AnimButton(u8'Хоткей не найден', sizeButton, button_col)
 			end
 		end
 	}
@@ -183,9 +199,7 @@ HOTKEY.GetHotKey = setmetatable(
 	{},
 	{
 		__call = function(self, name)
-			if HOTKEY.List[name] ~= nil then
-				return HOTKEY.List[name].keys
-			end
+			return HOTKEY.List[name] ~= nil and HOTKEY.List[name].keys
 		end
 	}
 )
@@ -198,42 +212,37 @@ HOTKEY.GetHotKeyList = setmetatable(
 		end
 	}
 )
+
 local key_translation = {
 	[vk.VK_SHIFT] = vk.VK_MBUTTON,
 	[65568] = vk.VK_XBUTTON1,
 	[131136] = vk.VK_XBUTTON2
 }
+
+
 addEventHandler('onWindowMessage', function(msg, key, lparam)
-	if msg == 641 or msg == 642 or lparam == -1073741809 then HOTKEY.ActiveKeys = {} end
+	if msg == wm.WM_IME_SETCONTEXT or msg == wm.WM_IME_NOTIFY or lparam == -1073741809 or msg == wm.WM_LBUTTONDOWN then HOTKEY.ActiveKeys = {} end
 
 	local isSpecMouseButton = false
-	if msg == 0x0207 or msg == 0x020b then
+	if msg == wm.WM_MBUTTONDOWN or msg == wm.WM_XBUTTONDOWN then
 		key = key_translation[key]
 		isSpecMouseButton = true
 	end
-
-	if msg == 0x100 or msg == 260 or isSpecMouseButton or msg == 0x0201 or msg == 0x0204 then
-		
+	if msg == wm.WM_KEYDOWN or msg == wm.WM_SYSKEYDOWN or isSpecMouseButton then
 		if HOTKEY.HotKeyIsEdit == nil then
-			if key ~= HOTKEY.CancelKey and key ~= HOTKEY.RemoveKey and key ~= 0x1B and key ~= 0x08 and next(HOTKEY.List) then
-				local found = false
-				for k, v in ipairs(HOTKEY.ActiveKeys) do
-					if v == key then
-						found = true
-						break
-					end
-				end
-				if not found then
-					table.insert(HOTKEY.ActiveKeys, key)
-					if keyIsSpecial(key) then
-						table.sort(HOTKEY.ActiveKeys)
-					else
-						searchHotKey(HOTKEY.ActiveKeys)
-						table.remove(HOTKEY.ActiveKeys)
-					end
+			-- dbg("KEY DOWN:", vk.id_to_name(key), "HOTKEY.ActiveKeys:", encodeJson(HOTKEY.ActiveKeys))
+			if key ~= HOTKEY.CancelKey and key ~= HOTKEY.RemoveKey and key ~= vk.VK_VK_ESCAPE and key ~= vk.VK_BACK and not isValueInITable(key, HOTKEY.ActiveKeys) then
+				table.insert(HOTKEY.ActiveKeys, key)
+				-- dbg("KEY ADD:", vk.id_to_name(key), "HOTKEY.ActiveKeys:", encodeJson(HOTKEY.ActiveKeys))
+				if not keyIsSpecial(key) then
+					-- table.sort(HOTKEY.ActiveKeys)
+					searchHotKey(HOTKEY.ActiveKeys)
+					local _, index = isValueInITable(key, HOTKEY.ActiveKeys)
+					table.remove(HOTKEY.ActiveKeys, index)
+					-- dbg("KEY REMOVE:", vk.id_to_name(key), "HOTKEY.ActiveKeys:", encodeJson(HOTKEY.ActiveKeys))
 				end
 			end
-		else
+		else -- EDIT MODE
 			if key == HOTKEY.CancelKey then
 				HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys = HOTKEY.HotKeyIsEdit.BackupHotKeyKeys
 				HOTKEY.HotKeyIsEdit = nil
@@ -241,42 +250,31 @@ addEventHandler('onWindowMessage', function(msg, key, lparam)
 				HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys = {}
 				HOTKEY.ReturnHotKeys = HOTKEY.HotKeyIsEdit.NameHotKey
 				HOTKEY.HotKeyIsEdit = nil
-			elseif key ~= 0x1B and key ~= 0x08 then
-				local found = false
-				for k, v in ipairs(HOTKEY.HotKeyIsEdit.ActiveKeys) do
-					if v == key then
-						found = true
-						break
+			elseif key ~= vk.VK_ESCAPE and key ~= vk.VK_BACK and not isValueInITable(key, HOTKEY.HotKeyIsEdit.ActiveKeys) then
+				if keyIsSpecial(key) then
+					if not HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].soloKey then
+						table.insert(HOTKEY.HotKeyIsEdit.ActiveKeys, key)
+						table.sort(HOTKEY.HotKeyIsEdit.ActiveKeys)
+						HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys = HOTKEY.HotKeyIsEdit.ActiveKeys
 					end
-				end
-				if not found then
-					if keyIsSpecial(key) then
-						if not HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].soloKey then
-							for k, v in ipairs(specialKeys) do
-								if key == v then
-									table.insert(HOTKEY.HotKeyIsEdit.ActiveKeys, v)
-								end
-							end
-							table.sort(HOTKEY.HotKeyIsEdit.ActiveKeys)
-							HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys = HOTKEY.HotKeyIsEdit.ActiveKeys
-						end
-					else
-						table.insert(HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys, key)
-						HOTKEY.ReturnHotKeys = HOTKEY.HotKeyIsEdit.NameHotKey
-						HOTKEY.HotKeyIsEdit = nil
-					end
+				else
+					table.insert(HOTKEY.List[HOTKEY.HotKeyIsEdit.NameHotKey].keys, key)
+					HOTKEY.ReturnHotKeys = HOTKEY.HotKeyIsEdit.NameHotKey
+					HOTKEY.HotKeyIsEdit = nil
 				end
 			end
+
 			consumeWindowMessage(true, true)
 		end
-	elseif msg == 0x101 or msg == 261 then
+	elseif msg == wm.WM_KEYUP or msg == wm.WM_SYSKEYUP then
+		-- dbg(vk.id_to_name(key), keyIsSpecial(key))
 		if keyIsSpecial(key) then
-			local pizdec = HOTKEY.HotKeyIsEdit ~= nil and HOTKEY.HotKeyIsEdit.ActiveKeys or HOTKEY.ActiveKeys
-			for k, v in ipairs(pizdec) do
-				if v == key then
-					table.remove(pizdec, k)
-					break
-				end
+			local current_table = HOTKEY.HotKeyIsEdit ~= nil and HOTKEY.HotKeyIsEdit.ActiveKeys or HOTKEY.ActiveKeys
+			-- dbg("current_table:", current_table)
+			local result, index = isValueInITable(key, current_table)
+			-- dbg("isValueInITable:", result, index)
+			if result then
+				table.remove(current_table, index)
 			end
 		end
 	end
@@ -386,6 +384,10 @@ setmetatable(imgui.AnimButton, {
 		return result
 	end
 })
+
+imgui.OnInitialize(function()
+	imgui.Loaded = true
+end)
 
 
 
