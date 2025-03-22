@@ -135,7 +135,7 @@ UserInfoNameRequired=Вы должны ввести имя.
 ; *** "Select Destination Location" wizard page
 WizardSelectDir=Выбор папки установки
 SelectDirDesc=В какую папку вы хотите установить Law Enforcer Assistant?
-SelectDirLabel3=Укажите путь до корня игры
+SelectDirLabel3=Укажите путь до КОРНЯ игры
 SelectDirBrowseLabel=Нажмите «Далее», чтобы продолжить. Если вы хотите выбрать другую папку, нажмите «Обзор».
 DiskSpaceMBLabel=Требуется как минимум [mb] Мб свободного дискового пространства.
 CannotInstallToNetworkDrive=Установка не может производиться на сетевой диск.
