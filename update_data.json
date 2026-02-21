@@ -1,0 +1,39 @@
+{
+    "version_num": 124,
+    "version": "1.2.2",
+    "manager_version": 51,
+    "mandatory_update": 124,
+    "modules": [{
+            "url": "https://lea-script.tech/system/scripts/lib/vkeys.lua",
+            "path": "moonloader/lib/LEA/vkeys.lua",
+            "version": 0
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/variables_data.lua",
+            "path": "moonloader/lib/LEA/variables_data.lua",
+            "version": 3
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/effil.lua",
+            "path": "moonloader/lib/effil.lua"
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/libeffil.dll",
+            "path": "moonloader/lib/libeffil.dll"
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/fAwesome6.lua",
+            "path": "moonloader/lib/fAwesome6.lua"
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/crypto_lua.dll",
+            "path": "moonloader/lib/crypto_lua.dll",
+            "byte_code": true
+        },
+        {
+            "url": "https://lea-script.tech/system/scripts/lib/LEA%20Monitor.exe",
+            "path": "moonloader/Law Enforcer Assistant/LEA Monitor.exe",
+            "byte_code": true
+        }
+    ]
+}
