@@ -1,7 +1,7 @@
 {
     "version_num": 124,
     "version": "1.2.2",
-    "manager_version": 51,
+    "manager_version": 52,
     "mandatory_update": 124,
     "modules": [{
             "url": "https://lea-script.tech/system/scripts/lib/vkeys.lua",
