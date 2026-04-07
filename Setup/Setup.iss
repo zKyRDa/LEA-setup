@@ -66,11 +66,11 @@ begin
     DownloadPage.Clear;
     
     if WizardIsTaskSelected('VisualCppRedist') then begin
-      DownloadPage.Add('https://lea-script.tech/system/scripts/lib/VisualCppRedist_AIO_x86_x64.exe', 'VisualCppRedist_AIO_x86_x64.exe', 'ebdb3072ffb0d651b8fbd4e9ff8d8eca9930cb53231cdaced775a4fd8df4f273');
+      DownloadPage.Add('https://raw.githubusercontent.com/zKyRDa/LEA-setup/main/scripts/lib/VisualCppRedist_AIO_x86_x64.exe', 'VisualCppRedist_AIO_x86_x64.exe', 'ebdb3072ffb0d651b8fbd4e9ff8d8eca9930cb53231cdaced775a4fd8df4f273');
     end;
     
-    DownloadPage.Add('https://lea-script.tech/system/scripts/Law%20Enforcer%20Assistant%20Manager.luac', 'Law Enforcer Assistant Manager.luac', '');
-    DownloadPage.Add('https://lea-script.tech/system/scripts/Law%20Enforcer%20Assistant.luac', 'Law Enforcer Assistant.luac', '');
+    DownloadPage.Add('https://raw.githubusercontent.com/zKyRDa/LEA-setup/main/scripts/Law%20Enforcer%20Assistant%20Manager.luac', 'Law Enforcer Assistant Manager.luac', '');
+    DownloadPage.Add('https://raw.githubusercontent.com/zKyRDa/LEA-setup/main/scripts/Law%20Enforcer%20Assistant.luac', 'Law Enforcer Assistant.luac', '');
     
     DownloadPage.Show;
     
