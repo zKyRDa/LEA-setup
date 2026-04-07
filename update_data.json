@@ -1,37 +1,37 @@
 {
-    "version_num": 125,
+    "version_num": 126,
     "version": "1.3.0",
-    "manager_version": 52,
-    "mandatory_update": 125,
+    "manager_version": 53,
+    "mandatory_update": 126,
     "modules": [{
-            "url": "https://lea-script.tech/system/scripts/lib/vkeys.lua",
+            "url": "https://lea-script.space/system/scripts/lib/vkeys.lua",
             "path": "moonloader/lib/LEA/vkeys.lua",
             "version": 0
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/variables_data.lua",
+            "url": "https://lea-script.space/system/scripts/lib/variables_data.lua",
             "path": "moonloader/lib/LEA/variables_data.lua",
             "version": 3
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/effil.lua",
+            "url": "https://lea-script.space/system/scripts/lib/effil.lua",
             "path": "moonloader/lib/effil.lua"
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/libeffil.dll",
+            "url": "https://lea-script.space/system/scripts/lib/libeffil.dll",
             "path": "moonloader/lib/libeffil.dll"
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/fAwesome6.lua",
+            "url": "https://lea-script.space/system/scripts/lib/fAwesome6.lua",
             "path": "moonloader/lib/fAwesome6.lua"
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/crypto_lua.dll",
+            "url": "https://lea-script.space/system/scripts/lib/crypto_lua.dll",
             "path": "moonloader/lib/crypto_lua.dll",
             "byte_code": true
         },
         {
-            "url": "https://lea-script.tech/system/scripts/lib/LEA%20Monitor.exe",
+            "url": "https://lea-script.space/system/scripts/lib/LEA%20Monitor.exe",
             "path": "moonloader/Law Enforcer Assistant/LEA Monitor.exe",
             "byte_code": true
         }
